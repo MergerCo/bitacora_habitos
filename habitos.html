@@ -1,0 +1,2341 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6fa">
+  <title>Hábitos — seguimiento diario</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f6fa;
+      --surface: #fff;
+      --surface-2: #f0f2f7;
+      --text: #18202f;
+      --muted: #727b8d;
+      --border: #e4e7ee;
+      --accent: #635bdb;
+      --accent-2: #8b84f4;
+      --accent-soft: #eeedff;
+      --green: #16845b;
+      --green-soft: #e8f6ef;
+      --red: #c04444;
+      --orange: #d98627;
+      --shadow: 0 8px 30px rgb(25 32 48 / 5%);
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #11141b;
+      --surface: #191e28;
+      --surface-2: #222835;
+      --text: #edf0f7;
+      --muted: #a0a8b8;
+      --border: #303747;
+      --accent: #a39cff;
+      --accent-2: #c0bbff;
+      --accent-soft: #2d2a4b;
+      --green: #70d4a9;
+      --green-soft: #193a31;
+      --red: #ff8a8a;
+      --orange: #f2bb6f;
+      --shadow: 0 8px 30px rgb(0 0 0 / 14%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(1160px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      color: #fff;
+      background: var(--accent);
+      border-radius: 13px;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: -.02em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn,
+    select,
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 12px;
+    }
+
+    .btn:hover,
+    .icon-btn:hover,
+    select:hover {
+      border-color: var(--accent);
+    }
+
+    .btn.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 650;
+    }
+
+    .btn.danger {
+      color: var(--red);
+    }
+
+    main {
+      padding: 26px 0 40px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .topline h2 {
+      margin: 0;
+      font-size: 1.55rem;
+      letter-spacing: -.035em;
+    }
+
+    .date-label {
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat,
+    .panel,
+    .habit-card,
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat {
+      padding: 16px 18px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .83rem;
+    }
+
+    .stat-value {
+      font-size: 1.45rem;
+      font-weight: 750;
+      margin-top: 3px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, .9fr);
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .section-label {
+      color: var(--muted);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin: 20px 0 9px;
+    }
+
+    .habit-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .habit-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      box-shadow: none;
+    }
+
+    .habit-card.done {
+      background: var(--green-soft);
+      border-color: transparent;
+    }
+
+    .check {
+      width: 23px;
+      height: 23px;
+      flex: 0 0 23px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: white;
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    .done .check {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .habit-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .habit-name {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .done .habit-name {
+      text-decoration: line-through;
+      opacity: .75;
+    }
+
+    .habit-meta {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    .habit-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .icon-btn {
+      padding: 6px 9px;
+      border-radius: 8px;
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 22px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+    }
+
+    .week {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 7px;
+    }
+
+    .day-cell {
+      text-align: center;
+      padding: 9px 4px;
+      border-radius: 11px;
+      background: var(--surface-2);
+    }
+
+    .day-cell.today {
+      outline: 2px solid var(--accent);
+    }
+
+    .day-name,
+    .day-date {
+      display: block;
+      font-size: .74rem;
+      color: var(--muted);
+    }
+
+    .day-score {
+      display: block;
+      margin-top: 5px;
+      font-weight: 700;
+      font-size: .82rem;
+    }
+
+    .month-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .month-title {
+      font-weight: 700;
+    }
+
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .month-grid > span {
+      text-align: center;
+      color: var(--muted);
+      font-size: .72rem;
+      padding: 4px 0;
+    }
+
+    .cal-day {
+      display: grid;
+      place-items: center;
+      min-height: 34px;
+      border-radius: 9px;
+      background: var(--surface-2);
+      font-size: .8rem;
+      position: relative;
+    }
+
+    .cal-day.other {
+      opacity: .35;
+    }
+
+    .cal-day.today {
+      outline: 2px solid var(--accent);
+    }
+
+    .cal-day.has-data::after {
+      content: "";
+      position: absolute;
+      bottom: 4px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .progress-track {
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: inherit;
+      transition: width .2s;
+    }
+
+    .analytics-panel {
+      margin-top: 18px;
+    }
+
+    .analytics-head {
+      align-items: flex-start;
+    }
+
+    .chart-filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .chart-filters select {
+      min-width: 150px;
+      padding: 8px 10px;
+      font-size: .85rem;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .chart-card {
+      min-width: 0;
+      padding: 16px;
+      box-shadow: none;
+    }
+
+    .chart-card-wide {
+      grid-column: 1 / -1;
+    }
+
+    .chart-card h4 {
+      margin: 0 0 12px;
+      font-size: .93rem;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 260px;
+    }
+
+    .chart-card-wide .chart-container {
+      height: 300px;
+    }
+
+    .chart-empty {
+      display: grid;
+      place-items: center;
+      height: 100%;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 20px;
+      font-size: .85rem;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 18px 0 28px;
+      font-size: .8rem;
+    }
+
+    dialog {
+      width: min(440px, calc(100% - 28px));
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 20px;
+      color: var(--text);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    dialog::backdrop {
+      background: rgb(10 12 20 / 50%);
+    }
+
+    dialog h3 {
+      margin: 0 0 14px;
+    }
+
+    dialog p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .form-row {
+      display: grid;
+      gap: 6px;
+      margin: 12px 0;
+    }
+
+    .form-row label {
+      font-size: .85rem;
+      font-weight: 650;
+    }
+
+    .form-row input,
+    .form-row select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: end;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .notice {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: .8rem;
+      text-align: right;
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        width: 100%;
+      }
+
+      .topline {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .analytics-head {
+        align-items: stretch;
+      }
+
+      .chart-filters {
+        justify-content: stretch;
+      }
+
+      .chart-filters select {
+        flex: 1;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-card-wide {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .shell {
+        width: min(100% - 22px, 1160px);
+      }
+
+      .stats {
+        gap: 8px;
+      }
+
+      .stat {
+        padding: 12px;
+      }
+
+      .stat-value {
+        font-size: 1.2rem;
+      }
+
+      .toolbar .btn {
+        flex: 1;
+        padding: 8px;
+        font-size: .82rem;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .habit-card {
+        gap: 9px;
+        padding: 10px;
+      }
+
+      .habit-actions .icon-btn {
+        padding: 6px;
+      }
+
+      .chart-filters {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .chart-filters select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">✓</div>
+
+        <div>
+          <h1 data-i18n="appName">Mis hábitos</h1>
+          <div class="subtitle" data-i18n="tagline">
+            Pequeños pasos, todos los días
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" id="themeBtn" type="button">
+          ☾ <span data-i18n="darkMode">Modo oscuro</span>
+        </button>
+
+        <select id="langSelect" aria-label="Language">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+
+        <button class="btn" id="exportBtn" type="button" data-i18n="export">
+          Exportar JSON
+        </button>
+
+        <button class="btn" id="importBtn" type="button" data-i18n="import">
+          Importar JSON
+        </button>
+
+        <input id="fileInput" type="file" accept="application/json,.json" hidden>
+
+        <button class="btn danger" id="resetBtn" type="button" data-i18n="reset">
+          Reinicio completo
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="topline">
+        <div>
+          <h2 data-i18n="todayTitle">Hoy</h2>
+          <div class="date-label" id="todayDate"></div>
+        </div>
+
+        <button class="btn primary" id="addBtn" type="button">
+          ＋ <span data-i18n="addHabit">Nuevo hábito</span>
+        </button>
+      </div>
+
+      <section class="stats" aria-label="Dashboard">
+        <article class="stat">
+          <div class="stat-label" data-i18n="totalHabits">
+            Hábitos activos
+          </div>
+          <div class="stat-value" id="totalStat">0</div>
+        </article>
+
+        <article class="stat">
+          <div class="stat-label" data-i18n="completedToday">
+            Completados hoy
+          </div>
+          <div class="stat-value" id="doneStat">0 / 0</div>
+        </article>
+
+        <article class="stat">
+          <div class="stat-label" data-i18n="completionRate">
+            Progreso de hoy
+          </div>
+          <div class="stat-value" id="rateStat">0%</div>
+        </article>
+      </section>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="panel-head">
+            <h3 data-i18n="dailyHabits">Seguimiento de hábitos</h3>
+            <span class="subtitle" id="dailyCount"></span>
+          </div>
+
+          <div class="section-label" data-i18n="pending">
+            Pendientes
+          </div>
+
+          <div class="habit-list" id="pendingList"></div>
+
+          <div class="section-label" data-i18n="completed">
+            Completados
+          </div>
+
+          <div class="habit-list" id="completedList"></div>
+
+          <div class="progress-track" aria-label="Progreso diario">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </section>
+
+        <div style="display:grid;gap:18px;align-content:start">
+          <section class="panel">
+            <div class="panel-head">
+              <h3 data-i18n="weeklySummary">Resumen semanal</h3>
+            </div>
+
+            <div class="week" id="weekGrid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="month-head">
+              <button
+                class="icon-btn"
+                id="prevMonth"
+                type="button"
+                aria-label="Previous month">
+                ‹
+              </button>
+
+              <div class="month-title" id="monthTitle"></div>
+
+              <button
+                class="icon-btn"
+                id="nextMonth"
+                type="button"
+                aria-label="Next month">
+                ›
+              </button>
+            </div>
+
+            <div class="month-grid" id="monthGrid"></div>
+
+            <div class="subtitle" style="margin-top:10px" data-i18n="calendarHint">
+              El punto indica días con hábitos completados.
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section class="panel analytics-panel">
+        <div class="panel-head analytics-head">
+          <div>
+            <h3 data-i18n="analyticsTitle">Estadísticas</h3>
+            <div class="subtitle" data-i18n="analyticsSubtitle">
+              Analiza tu constancia y progreso
+            </div>
+          </div>
+
+          <div class="chart-filters">
+            <select id="chartPeriodFilter" aria-label="Chart period">
+              <option value="7" data-i18n="last7Days">
+                Últimos 7 días
+              </option>
+              <option value="30" data-i18n="last30Days">
+                Últimos 30 días
+              </option>
+              <option value="90" data-i18n="last90Days">
+                Últimos 90 días
+              </option>
+              <option value="month" data-i18n="thisMonth">
+                Este mes
+              </option>
+              <option value="year" data-i18n="thisYear">
+                Este año
+              </option>
+            </select>
+
+            <select id="chartHabitFilter" aria-label="Chart habit">
+              <option value="all" data-i18n="allHabits">
+                Todos los hábitos
+              </option>
+            </select>
+
+            <select id="chartFrequencyFilter" aria-label="Chart frequency">
+              <option value="all" data-i18n="allFrequencies">
+                Todas las frecuencias
+              </option>
+              <option value="daily" data-i18n="daily">
+                Diaria
+              </option>
+              <option value="weekly" data-i18n="weekly">
+                Semanal
+              </option>
+              <option value="monthly" data-i18n="monthly">
+                Mensual
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <article class="chart-card">
+            <h4 data-i18n="overallProgress">
+              Progreso general
+            </h4>
+
+            <div class="chart-container">
+              <canvas id="progressChart"></canvas>
+            </div>
+          </article>
+
+          <article class="chart-card">
+            <h4 data-i18n="weeklyActivity">
+              Actividad del período
+            </h4>
+
+            <div class="chart-container">
+              <canvas id="weeklyChart"></canvas>
+            </div>
+          </article>
+
+          <article class="chart-card chart-card-wide">
+            <h4 data-i18n="habitProgress">
+              Progreso por hábito
+            </h4>
+
+            <div class="chart-container">
+              <canvas id="habitsChart"></canvas>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <div class="notice" id="notice" aria-live="polite"></div>
+    </main>
+
+    <footer>
+      <div>Desarrollado por: Jesús Hernández</div>
+      <div>
+        <a href="mailto:info.mergerconsulting@gmail.com" style="color:inherit">
+          info.mergerconsulting@gmail.com
+        </a>
+      </div>
+      <div>© 2026 Todos los derechos reservados</div>
+    </footer>
+  </div>
+
+  <dialog id="habitDialog">
+    <form id="habitForm">
+      <h3 id="dialogTitle">Nuevo hábito</h3>
+
+      <div class="form-row">
+        <label for="habitName" data-i18n="habitNameLabel">
+          Nombre del hábito
+        </label>
+
+        <input
+          id="habitName"
+          maxlength="70"
+          required
+          autocomplete="off">
+      </div>
+
+      <div class="form-row">
+        <label for="habitFrequency" data-i18n="frequencyLabel">
+          Frecuencia
+        </label>
+
+        <select id="habitFrequency" required>
+          <option value="daily" data-i18n="daily">Diaria</option>
+          <option value="weekly" data-i18n="weekly">Semanal</option>
+          <option value="monthly" data-i18n="monthly">Mensual</option>
+        </select>
+      </div>
+
+      <div class="form-row" id="weeklyDayRow" hidden>
+        <label for="habitWeekday" data-i18n="weekdayLabel">
+          Día de la semana
+        </label>
+
+        <select id="habitWeekday" required>
+          <option value="1" data-i18n="monday">Lunes</option>
+          <option value="2" data-i18n="tuesday">Martes</option>
+          <option value="3" data-i18n="wednesday">Miércoles</option>
+          <option value="4" data-i18n="thursday">Jueves</option>
+          <option value="5" data-i18n="friday">Viernes</option>
+          <option value="6" data-i18n="saturday">Sábado</option>
+          <option value="0" data-i18n="sunday">Domingo</option>
+        </select>
+      </div>
+
+      <div class="form-row" id="monthlyDayRow" hidden>
+        <label for="habitMonthDay" data-i18n="monthDayLabel">
+          Día del mes
+        </label>
+
+        <select id="habitMonthDay" required>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15">15</option>
+          <option value="16">16</option>
+          <option value="17">17</option>
+          <option value="18">18</option>
+          <option value="19">19</option>
+          <option value="20">20</option>
+          <option value="21">21</option>
+          <option value="22">22</option>
+          <option value="23">23</option>
+          <option value="24">24</option>
+          <option value="25">25</option>
+          <option value="26">26</option>
+          <option value="27">27</option>
+          <option value="28">28</option>
+          <option value="29">29</option>
+          <option value="30">30</option>
+          <option value="31">31</option>
+        </select>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn" type="button" id="cancelDialog" data-i18n="cancel">
+          Cancelar
+        </button>
+
+        <button class="btn primary" type="submit" data-i18n="save">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="lastDayDialog">
+    <form method="dialog">
+      <h3 data-i18n="lastDayTitle">
+        Día 31 seleccionado
+      </h3>
+
+      <p data-i18n="lastDayMessage">
+        En los meses que no tienen 31 días, este hábito se programará automáticamente para el último día del mes.
+      </p>
+
+      <div class="dialog-actions">
+        <button class="btn" value="cancel" data-i18n="cancel">
+          Cancelar
+        </button>
+
+        <button class="btn primary" value="confirm" data-i18n="continue">
+          Continuar
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "habitos-app-v3";
+
+      const $ = selector => document.querySelector(selector);
+
+      const chartInstances = {
+        progress: null,
+        weekly: null,
+        habits: null
+      };
+
+      const chartFilters = {
+        period: "7",
+        habit: "all",
+        frequency: "all"
+      };
+
+      const translations = {
+        es: {
+          appName: "Mis hábitos",
+          tagline: "Pequeños pasos, todos los días",
+          darkMode: "Modo oscuro",
+          lightMode: "Modo claro",
+          export: "Exportar JSON",
+          import: "Importar JSON",
+          reset: "Reinicio completo",
+          todayTitle: "Hoy",
+          addHabit: "Nuevo hábito",
+          totalHabits: "Hábitos activos",
+          completedToday: "Completados hoy",
+          completionRate: "Progreso de hoy",
+          dailyHabits: "Seguimiento de hábitos",
+          pending: "Pendientes",
+          completed: "Completados",
+          weeklySummary: "Resumen semanal",
+          calendarHint: "El punto indica días con hábitos completados.",
+          analyticsTitle: "Estadísticas",
+          analyticsSubtitle: "Analiza tu constancia y progreso",
+          overallProgress: "Progreso general",
+          weeklyActivity: "Actividad del período",
+          habitProgress: "Progreso por hábito",
+          last7Days: "Últimos 7 días",
+          last30Days: "Últimos 30 días",
+          last90Days: "Últimos 90 días",
+          thisMonth: "Este mes",
+          thisYear: "Este año",
+          allHabits: "Todos los hábitos",
+          allFrequencies: "Todas las frecuencias",
+          habitNameLabel: "Nombre del hábito",
+          frequencyLabel: "Frecuencia",
+          weekdayLabel: "Día de la semana",
+          monthDayLabel: "Día del mes",
+          daily: "Diaria",
+          weekly: "Semanal",
+          monthly: "Mensual",
+          monday: "Lunes",
+          tuesday: "Martes",
+          wednesday: "Miércoles",
+          thursday: "Jueves",
+          friday: "Viernes",
+          saturday: "Sábado",
+          sunday: "Domingo",
+          cancel: "Cancelar",
+          save: "Guardar",
+          continue: "Continuar",
+          edit: "Editar",
+          delete: "Eliminar",
+          noPending: "No hay hábitos pendientes.",
+          noCompleted: "Todavía no has completado hábitos hoy.",
+          noHabits: "Aún no tienes hábitos. ¡Crea el primero!",
+          noChartData: "No hay datos suficientes para mostrar este gráfico.",
+          completedLabel: "Completados",
+          pendingLabel: "Pendientes",
+          completionLabel: "Cumplimiento",
+          confirmDelete: "¿Eliminar este hábito y su historial?",
+          confirmReset: "¿Borrar todos los hábitos y todo el progreso? Esta acción no se puede deshacer.",
+          confirmImport: "La importación reemplazará los datos actuales. ¿Deseas continuar?",
+          invalidFile: "El archivo no es válido o tiene un formato incorrecto.",
+          imported: "Progreso importado correctamente.",
+          exported: "Archivo JSON exportado.",
+          resetDone: "Todos los datos se han eliminado.",
+          saved: "Guardado automáticamente",
+          habitAdded: "Hábito creado.",
+          habitUpdated: "Hábito actualizado.",
+          dialogNew: "Nuevo hábito",
+          dialogEdit: "Editar hábito",
+          lastDayTitle: "Día 31 seleccionado",
+          lastDayMessage: "En los meses que no tienen 31 días, este hábito se programará automáticamente para el último día del mes.",
+          completion: "completados",
+          frequencyDaily: "Diaria",
+          frequencyWeekly: "Semanal",
+          frequencyMonthly: "Mensual",
+          weekdays: ["L", "M", "X", "J", "V", "S", "D"],
+          shortDays: ["dom.", "lun.", "mar.", "mié.", "jue.", "vie.", "sáb."],
+          months: [
+            "enero",
+            "febrero",
+            "marzo",
+            "abril",
+            "mayo",
+            "junio",
+            "julio",
+            "agosto",
+            "septiembre",
+            "octubre",
+            "noviembre",
+            "diciembre"
+          ]
+        },
+
+        en: {
+          appName: "My habits",
+          tagline: "Small steps, every day",
+          darkMode: "Dark mode",
+          lightMode: "Light mode",
+          export: "Export JSON",
+          import: "Import JSON",
+          reset: "Reset all",
+          todayTitle: "Today",
+          addHabit: "New habit",
+          totalHabits: "Active habits",
+          completedToday: "Completed today",
+          completionRate: "Today's progress",
+          dailyHabits: "Habit tracking",
+          pending: "Pending",
+          completed: "Completed",
+          weeklySummary: "Weekly summary",
+          calendarHint: "A dot marks days with completed habits.",
+          analyticsTitle: "Statistics",
+          analyticsSubtitle: "Analyze your consistency and progress",
+          overallProgress: "Overall progress",
+          weeklyActivity: "Period activity",
+          habitProgress: "Progress by habit",
+          last7Days: "Last 7 days",
+          last30Days: "Last 30 days",
+          last90Days: "Last 90 days",
+          thisMonth: "This month",
+          thisYear: "This year",
+          allHabits: "All habits",
+          allFrequencies: "All frequencies",
+          habitNameLabel: "Habit name",
+          frequencyLabel: "Frequency",
+          weekdayLabel: "Weekday",
+          monthDayLabel: "Day of the month",
+          daily: "Daily",
+          weekly: "Weekly",
+          monthly: "Monthly",
+          monday: "Monday",
+          tuesday: "Tuesday",
+          wednesday: "Wednesday",
+          thursday: "Thursday",
+          friday: "Friday",
+          saturday: "Saturday",
+          sunday: "Sunday",
+          cancel: "Cancel",
+          save: "Save",
+          continue: "Continue",
+          edit: "Edit",
+          delete: "Delete",
+          noPending: "No pending habits.",
+          noCompleted: "You haven't completed any habits today yet.",
+          noHabits: "No habits yet. Create your first one!",
+          noChartData: "There is not enough data to display this chart.",
+          completedLabel: "Completed",
+          pendingLabel: "Pending",
+          completionLabel: "Completion",
+          confirmDelete: "Delete this habit and its history?",
+          confirmReset: "Delete all habits and progress? This cannot be undone.",
+          confirmImport: "Importing will replace current data. Continue?",
+          invalidFile: "The file is invalid or has an incorrect format.",
+          imported: "Progress imported successfully.",
+          exported: "JSON file exported.",
+          resetDone: "All data has been deleted.",
+          saved: "Saved automatically",
+          habitAdded: "Habit created.",
+          habitUpdated: "Habit updated.",
+          dialogNew: "New habit",
+          dialogEdit: "Edit habit",
+          lastDayTitle: "Day 31 selected",
+          lastDayMessage: "In months without 31 days, this habit will automatically be scheduled for the last day of the month.",
+          completion: "completed",
+          frequencyDaily: "Daily",
+          frequencyWeekly: "Weekly",
+          frequencyMonthly: "Monthly",
+          weekdays: ["M", "T", "W", "T", "F", "S", "S"],
+          shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+          months: [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+          ]
+        }
+      };
+
+      const today = new Date();
+
+      let state = loadState();
+      let monthCursor = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      );
+      let editingId = null;
+
+      function dateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+      }
+
+      function parseDateKey(key) {
+        const [year, month, day] = key.split("-").map(Number);
+        return new Date(year, month - 1, day);
+      }
+
+      function defaultState() {
+        return {
+          version: 3,
+          language: "es",
+          theme: "light",
+          habits: []
+        };
+      }
+
+      function normalizeHabit(habit) {
+        if (!habit || typeof habit.name !== "string") {
+          return null;
+        }
+
+        const frequency = ["daily", "weekly", "monthly"].includes(
+          habit.frequency
+        )
+          ? habit.frequency
+          : "daily";
+
+        const weekday = Number.isInteger(Number(habit.weekday))
+          ? Number(habit.weekday)
+          : 1;
+
+        const monthDay = Number.isInteger(Number(habit.monthDay))
+          ? Math.min(31, Math.max(1, Number(habit.monthDay)))
+          : 1;
+
+        return {
+          id: typeof habit.id === "string"
+            ? habit.id
+            : `${Date.now()}-${Math.random()}`,
+          name: habit.name.trim().slice(0, 70),
+          frequency,
+          weekday,
+          monthDay,
+          completed: habit.completed &&
+            typeof habit.completed === "object"
+            ? habit.completed
+            : {}
+        };
+      }
+
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+
+          if (!saved) {
+            const oldSaved = localStorage.getItem("habitos-app-v2") ||
+              localStorage.getItem("habitos-app-v1");
+
+            if (!oldSaved) {
+              return defaultState();
+            }
+
+            const oldState = JSON.parse(oldSaved);
+
+            return {
+              ...defaultState(),
+              language: oldState.language === "en" ? "en" : "es",
+              theme: oldState.theme === "dark" ? "dark" : "light",
+              habits: Array.isArray(oldState.habits)
+                ? oldState.habits.map(normalizeHabit).filter(Boolean)
+                : []
+            };
+          }
+
+          const parsed = JSON.parse(saved);
+
+          if (!parsed || !Array.isArray(parsed.habits)) {
+            return defaultState();
+          }
+
+          return {
+            ...defaultState(),
+            ...parsed,
+            language: parsed.language === "en" ? "en" : "es",
+            theme: parsed.theme === "dark" ? "dark" : "light",
+            habits: parsed.habits.map(normalizeHabit).filter(Boolean)
+          };
+        } catch {
+          return defaultState();
+        }
+      }
+
+      function persist() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          $("#notice").textContent = t().saved;
+        } catch {
+          $("#notice").textContent =
+            "No se pudo guardar en este navegador.";
+        }
+      }
+
+      function t() {
+        return translations[state.language] || translations.es;
+      }
+
+      function getWeekdayName(day) {
+        const names = {
+          es: [
+            "domingo",
+            "lunes",
+            "martes",
+            "miércoles",
+            "jueves",
+            "viernes",
+            "sábado"
+          ],
+          en: [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+          ]
+        };
+
+        return names[state.language][day] ||
+          names[state.language][1];
+      }
+
+      function getFrequencyLabel(habit) {
+        if (habit.frequency === "weekly") {
+          return `${t().frequencyWeekly} · ${
+            getWeekdayName(habit.weekday)
+          }`;
+        }
+
+        if (habit.frequency === "monthly") {
+          return `${t().frequencyMonthly} · día ${habit.monthDay}`;
+        }
+
+        return t().frequencyDaily;
+      }
+
+      function isHabitScheduledForDate(habit, date) {
+        if (habit.frequency === "weekly") {
+          return date.getDay() === Number(habit.weekday);
+        }
+
+        if (habit.frequency === "monthly") {
+          const lastDay = new Date(
+            date.getFullYear(),
+            date.getMonth() + 1,
+            0
+          ).getDate();
+
+          const scheduledDay = Number(habit.monthDay) === 31
+            ? lastDay
+            : Math.min(Number(habit.monthDay), lastDay);
+
+          return date.getDate() === scheduledDay;
+        }
+
+        return true;
+      }
+
+      function getScheduledHabits(date) {
+        return state.habits.filter(habit =>
+          isHabitScheduledForDate(habit, date)
+        );
+      }
+
+      function getFilteredHabits() {
+        return state.habits.filter(habit => {
+          const matchesHabit =
+            chartFilters.habit === "all" ||
+            habit.id === chartFilters.habit;
+
+          const matchesFrequency =
+            chartFilters.frequency === "all" ||
+            habit.frequency === chartFilters.frequency;
+
+          return matchesHabit && matchesFrequency;
+        });
+      }
+
+      function getPeriodDates() {
+        const dates = [];
+
+        if (chartFilters.period === "month") {
+          const year = today.getFullYear();
+          const month = today.getMonth();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+          for (let day = 1; day <= daysInMonth; day++) {
+            dates.push(new Date(year, month, day));
+          }
+
+          return dates;
+        }
+
+        if (chartFilters.period === "year") {
+          const year = today.getFullYear();
+
+          for (let month = 0; month < 12; month++) {
+            dates.push(new Date(year, month, 1));
+          }
+
+          return dates;
+        }
+
+        const days = Number(chartFilters.period) || 7;
+
+        for (let index = days - 1; index >= 0; index--) {
+          dates.push(new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() - index
+          ));
+        }
+
+        return dates;
+      }
+
+      function getPeriodLabel(date) {
+        const locale = state.language === "es"
+          ? "es-ES"
+          : "en-US";
+
+        if (chartFilters.period === "year") {
+          return date.toLocaleDateString(locale, {
+            month: "short"
+          });
+        }
+
+        if (chartFilters.period === "month") {
+          return date.getDate().toString();
+        }
+
+        return date.toLocaleDateString(locale, {
+          weekday: "short",
+          day: "numeric"
+        });
+      }
+
+      function getChartColors() {
+        const styles = getComputedStyle(document.documentElement);
+
+        return {
+          accent: styles.getPropertyValue("--accent").trim(),
+          accent2: styles.getPropertyValue("--accent-2").trim(),
+          green: styles.getPropertyValue("--green").trim(),
+          red: styles.getPropertyValue("--red").trim(),
+          orange: styles.getPropertyValue("--orange").trim(),
+          text: styles.getPropertyValue("--text").trim(),
+          muted: styles.getPropertyValue("--muted").trim(),
+          border: styles.getPropertyValue("--border").trim(),
+          surface2: styles.getPropertyValue("--surface-2").trim()
+        };
+      }
+
+      function getChartBaseOptions() {
+        const colors = getChartColors();
+
+        return {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 350
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: colors.text
+              }
+            },
+            tooltip: {
+              callbacks: {}
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: colors.muted
+              },
+              grid: {
+                color: colors.border
+              }
+            },
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                color: colors.muted,
+                callback: value => `${value}%`
+              },
+              grid: {
+                color: colors.border
+              }
+            }
+          }
+        };
+      }
+
+      function destroyChart(chartName) {
+        if (chartInstances[chartName]) {
+          chartInstances[chartName].destroy();
+          chartInstances[chartName] = null;
+        }
+      }
+
+      function showChartEmpty(canvasId, message) {
+        const canvas = document.getElementById(canvasId);
+        const container = canvas.parentElement;
+
+        canvas.hidden = true;
+
+        let empty = container.querySelector(".chart-empty");
+
+        if (!empty) {
+          empty = document.createElement("div");
+          empty.className = "chart-empty";
+          container.append(empty);
+        }
+
+        empty.textContent = message;
+        empty.hidden = false;
+      }
+
+      function showChartCanvas(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const container = canvas.parentElement;
+
+        canvas.hidden = false;
+
+        const empty = container.querySelector(".chart-empty");
+
+        if (empty) {
+          empty.hidden = true;
+        }
+      }
+
+      function renderProgressChart() {
+        destroyChart("progress");
+
+        const habits = getFilteredHabits();
+        const dates = getPeriodDates();
+
+        let scheduledCount = 0;
+        let completedCount = 0;
+
+        for (const date of dates) {
+          const key = dateKey(date);
+
+          for (const habit of habits) {
+            if (!isHabitScheduledForDate(habit, date)) {
+              continue;
+            }
+
+            scheduledCount++;
+
+            if (habit.completed[key]) {
+              completedCount++;
+            }
+          }
+        }
+
+        const pendingCount = Math.max(
+          scheduledCount - completedCount,
+          0
+        );
+
+        if (!scheduledCount) {
+          showChartEmpty("progressChart", t().noChartData);
+          return;
+        }
+
+        showChartCanvas("progressChart");
+
+        const colors = getChartColors();
+
+        chartInstances.progress = new Chart(
+          document.getElementById("progressChart"),
+          {
+            type: "doughnut",
+            data: {
+              labels: [
+                t().completedLabel,
+                t().pendingLabel
+              ],
+              datasets: [{
+                data: [completedCount, pendingCount],
+                backgroundColor: [
+                  colors.green,
+                  colors.surface2
+                ],
+                borderColor: [
+                  colors.green,
+                  colors.border
+                ],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: "68%",
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: {
+                    color: colors.text
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: context => {
+                      const value = context.raw || 0;
+                      const percentage = scheduledCount
+                        ? Math.round(value / scheduledCount * 100)
+                        : 0;
+
+                      return `${context.label}: ${value} (${percentage}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        );
+      }
+
+      function renderWeeklyChart() {
+        destroyChart("weekly");
+
+        const habits = getFilteredHabits();
+        const dates = getPeriodDates();
+
+        const labels = dates.map(getPeriodLabel);
+
+        const values = dates.map(date => {
+          const scheduled = habits.filter(habit =>
+            isHabitScheduledForDate(habit, date)
+          );
+
+          if (!scheduled.length) {
+            return 0;
+          }
+
+          const completed = scheduled.filter(habit =>
+            habit.completed[dateKey(date)]
+          ).length;
+
+          return Math.round(completed / scheduled.length * 100);
+        });
+
+        if (!habits.length || !dates.length) {
+          showChartEmpty("weeklyChart", t().noChartData);
+          return;
+        }
+
+        showChartCanvas("weeklyChart");
+
+        const colors = getChartColors();
+        const options = getChartBaseOptions();
+
+        options.plugins.legend.display = false;
+        options.plugins.tooltip.callbacks.label = context =>
+          `${t().completionLabel}: ${context.raw}%`;
+
+        chartInstances.weekly = new Chart(
+          document.getElementById("weeklyChart"),
+          {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [{
+                label: t().completionLabel,
+                data: values,
+                backgroundColor: colors.accent,
+                borderRadius: 7,
+                maxBarThickness: 34
+              }]
+            },
+            options
+          }
+        );
+      }
+
+      function renderHabitsChart() {
+        destroyChart("habits");
+
+        const habits = getFilteredHabits();
+        const dates = getPeriodDates();
+
+        const labels = habits.map(habit => habit.name);
+
+        const values = habits.map(habit => {
+          let scheduledCount = 0;
+          let completedCount = 0;
+
+          for (const date of dates) {
+            if (!isHabitScheduledForDate(habit, date)) {
+              continue;
+            }
+
+            scheduledCount++;
+
+            if (habit.completed[dateKey(date)]) {
+              completedCount++;
+            }
+          }
+
+          return scheduledCount
+            ? Math.round(completedCount / scheduledCount * 100)
+            : 0;
+        });
+
+        if (!habits.length) {
+          showChartEmpty("habitsChart", t().noChartData);
+          return;
+        }
+
+        showChartCanvas("habitsChart");
+
+        const colors = getChartColors();
+        const options = getChartBaseOptions();
+
+        options.indexAxis = "y";
+        options.plugins.legend.display = false;
+        options.scales.x.max = 100;
+        options.scales.x.ticks.callback = value => `${value}%`;
+        options.scales.y.ticks = {
+          color: colors.muted
+        };
+        options.plugins.tooltip.callbacks.label = context =>
+          `${t().completionLabel}: ${context.raw}%`;
+
+        chartInstances.habits = new Chart(
+          document.getElementById("habitsChart"),
+          {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [{
+                label: t().completionLabel,
+                data: values,
+                backgroundColor: colors.accent2,
+                borderRadius: 7,
+                barThickness: 22
+              }]
+            },
+            options
+          }
+        );
+      }
+
+      function populateChartHabitFilter() {
+        const select = $("#chartHabitFilter");
+        const currentValue = chartFilters.habit;
+
+        select.replaceChildren();
+
+        const allOption = document.createElement("option");
+        allOption.value = "all";
+        allOption.textContent = t().allHabits;
+        select.append(allOption);
+
+        for (const habit of state.habits) {
+          const option = document.createElement("option");
+          option.value = habit.id;
+          option.textContent = habit.name;
+          select.append(option);
+        }
+
+        const stillExists = state.habits.some(
+          habit => habit.id === currentValue
+        );
+
+        chartFilters.habit = stillExists ? currentValue : "all";
+        select.value = chartFilters.habit;
+      }
+
+      function renderCharts() {
+        if (typeof Chart === "undefined") {
+          return;
+        }
+
+        populateChartHabitFilter();
+        renderProgressChart();
+        renderWeeklyChart();
+        renderHabitsChart();
+      }
+
+      function setLanguage(language) {
+        state.language = language === "en" ? "en" : "es";
+
+        document.documentElement.lang = state.language;
+
+        document.querySelectorAll("[data-i18n]").forEach(element => {
+          const key = element.dataset.i18n;
+
+          if (t()[key]) {
+            element.textContent = t()[key];
+          }
+        });
+
+        $("#themeBtn").innerHTML = state.theme === "dark"
+          ? `☀ <span>${t().lightMode}</span>`
+          : `☾ <span>${t().darkMode}</span>`;
+
+        document.title = state.language === "es"
+          ? "Hábitos — seguimiento diario"
+          : "Habits — daily tracking";
+
+        render();
+      }
+
+      function applyTheme() {
+        document.documentElement.dataset.theme = state.theme;
+
+        $("#themeBtn").innerHTML = state.theme === "dark"
+          ? `☀ <span>${t().lightMode}</span>`
+          : `☾ <span>${t().darkMode}</span>`;
+      }
+
+      function render() {
+        applyTheme();
+
+        const locale = state.language === "es"
+          ? "es-ES"
+          : "en-US";
+
+        $("#todayDate").textContent = today.toLocaleDateString(
+          locale,
+          {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          }
+        );
+
+        const key = dateKey(today);
+        const scheduled = getScheduledHabits(today);
+        const pending = scheduled.filter(habit => !habit.completed[key]);
+        const done = scheduled.filter(habit => !!habit.completed[key]);
+
+        $("#totalStat").textContent = state.habits.length;
+        $("#doneStat").textContent =
+          `${done.length} / ${scheduled.length}`;
+
+        const rate = scheduled.length
+          ? Math.round(done.length / scheduled.length * 100)
+          : 0;
+
+        $("#rateStat").textContent = `${rate}%`;
+        $("#dailyCount").textContent =
+          `${done.length} ${t().completion}`;
+        $("#progressFill").style.width = `${rate}%`;
+
+        renderList("#pendingList", pending, t().noPending);
+        renderList("#completedList", done, t().noCompleted);
+        renderWeek();
+        renderMonth();
+        renderCharts();
+      }
+
+      function renderList(selector, habits, emptyText) {
+        const list = $(selector);
+        list.replaceChildren();
+
+        if (!habits.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = state.habits.length
+            ? emptyText
+            : t().noHabits;
+
+          list.append(empty);
+          return;
+        }
+
+        for (const habit of habits) {
+          const key = dateKey(today);
+          const isDone = !!habit.completed[key];
+
+          const card = document.createElement("div");
+          card.className = `habit-card${isDone ? " done" : ""}`;
+
+          const check = document.createElement("button");
+          check.className = "check";
+          check.type = "button";
+          check.setAttribute(
+            "aria-label",
+            isDone ? t().completed : t().pending
+          );
+          check.textContent = isDone ? "✓" : "";
+
+          check.addEventListener("click", () => {
+            if (isDone) {
+              delete habit.completed[key];
+            } else {
+              habit.completed[key] = true;
+            }
+
+            persist();
+            render();
+          });
+
+          const main = document.createElement("div");
+          main.className = "habit-main";
+
+          const name = document.createElement("div");
+          name.className = "habit-name";
+          name.textContent = habit.name;
+
+          const meta = document.createElement("div");
+          meta.className = "habit-meta";
+          meta.textContent = getFrequencyLabel(habit);
+
+          main.append(name, meta);
+
+          const actions = document.createElement("div");
+          actions.className = "habit-actions";
+
+          const edit = document.createElement("button");
+          edit.className = "icon-btn";
+          edit.type = "button";
+          edit.textContent = "✎";
+          edit.title = t().edit;
+          edit.setAttribute("aria-label", t().edit);
+          edit.addEventListener("click", () => openDialog(habit));
+
+          const remove = document.createElement("button");
+          remove.className = "icon-btn";
+          remove.type = "button";
+          remove.textContent = "×";
+          remove.title = t().delete;
+          remove.setAttribute("aria-label", t().delete);
+
+          remove.addEventListener("click", () => {
+            if (!confirm(t().confirmDelete)) {
+              return;
+            }
+
+            state.habits = state.habits.filter(
+              item => item.id !== habit.id
+            );
+
+            if (chartFilters.habit === habit.id) {
+              chartFilters.habit = "all";
+            }
+
+            persist();
+            render();
+          });
+
+          actions.append(edit, remove);
+          card.append(check, main, actions);
+          list.append(card);
+        }
+      }
+
+      function renderWeek() {
+        const grid = $("#weekGrid");
+        grid.replaceChildren();
+
+        const mondayOffset = (today.getDay() + 6) % 7;
+
+        const monday = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - mondayOffset
+        );
+
+        for (let index = 0; index < 7; index++) {
+          const date = new Date(
+            monday.getFullYear(),
+            monday.getMonth(),
+            monday.getDate() + index
+          );
+
+          const key = dateKey(date);
+          const scheduled = getScheduledHabits(date);
+          const completed = scheduled.filter(
+            habit => habit.completed[key]
+          ).length;
+
+          const cell = document.createElement("div");
+
+          cell.className = `day-cell${
+            key === dateKey(today) ? " today" : ""
+          }`;
+
+          cell.innerHTML = `
+            <span class="day-name">${t().weekdays[index]}</span>
+            <span class="day-date">${date.getDate()}</span>
+            <span class="day-score">${completed}/${scheduled.length}</span>
+          `;
+
+          grid.append(cell);
+        }
+      }
+
+      function renderMonth() {
+        const grid = $("#monthGrid");
+        grid.replaceChildren();
+
+        const year = monthCursor.getFullYear();
+        const month = monthCursor.getMonth();
+
+        $("#monthTitle").textContent =
+          `${t().months[month]} ${year}`;
+
+        for (const day of t().weekdays) {
+          const label = document.createElement("span");
+          label.textContent = day;
+          grid.append(label);
+        }
+
+        const first = new Date(year, month, 1);
+        const startOffset = (first.getDay() + 6) % 7;
+
+        const start = new Date(
+          year,
+          month,
+          1 - startOffset
+        );
+
+        for (let index = 0; index < 42; index++) {
+          const date = new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate() + index
+          );
+
+          const key = dateKey(date);
+          const anyDone = state.habits.some(
+            habit => !!habit.completed[key]
+          );
+
+          const cell = document.createElement("div");
+          cell.className = "cal-day";
+
+          if (date.getMonth() !== month) {
+            cell.classList.add("other");
+          }
+
+          if (key === dateKey(today)) {
+            cell.classList.add("today");
+          }
+
+          if (anyDone) {
+            cell.classList.add("has-data");
+          }
+
+          cell.textContent = date.getDate();
+
+          cell.title = `${key}: ${
+            state.habits.filter(habit => habit.completed[key]).length
+          }/${state.habits.length}`;
+
+          grid.append(cell);
+        }
+      }
+
+      function updateFrequencyFields() {
+        const frequency = $("#habitFrequency").value;
+
+        $("#weeklyDayRow").hidden = frequency !== "weekly";
+        $("#monthlyDayRow").hidden = frequency !== "monthly";
+
+        $("#habitWeekday").required = frequency === "weekly";
+        $("#habitMonthDay").required = frequency === "monthly";
+      }
+
+      function openDialog(habit = null) {
+        editingId = habit ? habit.id : null;
+
+        $("#dialogTitle").textContent = habit
+          ? t().dialogEdit
+          : t().dialogNew;
+
+        $("#habitName").value = habit ? habit.name : "";
+        $("#habitFrequency").value = habit?.frequency || "daily";
+        $("#habitWeekday").value = String(habit?.weekday ?? 1);
+        $("#habitMonthDay").value = String(habit?.monthDay ?? 1);
+
+        updateFrequencyFields();
+
+        $("#habitDialog").showModal();
+        $("#habitName").focus();
+      }
+
+      async function confirmLastDayIfNeeded() {
+        if (
+          $("#habitFrequency").value !== "monthly" ||
+          Number($("#habitMonthDay").value) !== 31
+        ) {
+          return true;
+        }
+
+        const dialog = $("#lastDayDialog");
+        dialog.showModal();
+
+        const result = await new Promise(resolve => {
+          dialog.addEventListener(
+            "close",
+            () => resolve(dialog.returnValue),
+            { once: true }
+          );
+        });
+
+        return result === "confirm";
+      }
+
+      $("#habitFrequency").addEventListener(
+        "change",
+        updateFrequencyFields
+      );
+
+      $("#habitForm").addEventListener(
+        "submit",
+        async event => {
+          event.preventDefault();
+
+          const name = $("#habitName").value.trim();
+
+          if (!name) {
+            return;
+          }
+
+          const confirmed = await confirmLastDayIfNeeded();
+
+          if (!confirmed) {
+            return;
+          }
+
+          const habitData = {
+            name,
+            frequency: $("#habitFrequency").value,
+            weekday: Number($("#habitWeekday").value),
+            monthDay: Number($("#habitMonthDay").value)
+          };
+
+          if (editingId) {
+            const habit = state.habits.find(
+              item => item.id === editingId
+            );
+
+            if (habit) {
+              Object.assign(habit, habitData);
+            }
+
+            $("#notice").textContent = t().habitUpdated;
+          } else {
+            state.habits.push({
+              id: crypto.randomUUID
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random()}`,
+              ...habitData,
+              completed: {}
+            });
+
+            $("#notice").textContent = t().habitAdded;
+          }
+
+          $("#habitDialog").close();
+          persist();
+          render();
+        }
+      );
+
+      $("#addBtn").addEventListener("click", () => openDialog());
+
+      $("#cancelDialog").addEventListener("click", () => {
+        $("#habitDialog").close();
+      });
+
+      $("#themeBtn").addEventListener("click", () => {
+        state.theme = state.theme === "dark"
+          ? "light"
+          : "dark";
+
+        applyTheme();
+        persist();
+        renderCharts();
+      });
+
+      $("#langSelect").addEventListener("change", event => {
+        setLanguage(event.target.value);
+        persist();
+      });
+
+      $("#chartPeriodFilter").addEventListener("change", event => {
+        chartFilters.period = event.target.value;
+        renderCharts();
+      });
+
+      $("#chartHabitFilter").addEventListener("change", event => {
+        chartFilters.habit = event.target.value;
+        renderCharts();
+      });
+
+      $("#chartFrequencyFilter").addEventListener("change", event => {
+        chartFilters.frequency = event.target.value;
+        renderCharts();
+      });
+
+      $("#exportBtn").addEventListener("click", () => {
+        const blob = new Blob(
+          [JSON.stringify(state, null, 2)],
+          { type: "application/json" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = `habitos-${dateKey(today)}.json`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+        $("#notice").textContent = t().exported;
+      });
+
+      $("#importBtn").addEventListener("click", () => {
+        $("#fileInput").click();
+      });
+
+      $("#fileInput").addEventListener(
+        "change",
+        async event => {
+          const file = event.target.files &&
+            event.target.files[0];
+
+          event.target.value = "";
+
+          if (!file) {
+            return;
+          }
+
+          if (!confirm(t().confirmImport)) {
+            return;
+          }
+
+          try {
+            const imported = JSON.parse(await file.text());
+
+            if (
+              !imported ||
+              !Array.isArray(imported.habits) ||
+              !imported.habits.every(habit =>
+                habit &&
+                typeof habit.name === "string" &&
+                habit.name.trim() &&
+                habit.completed &&
+                typeof habit.completed === "object" &&
+                !Array.isArray(habit.completed)
+              )
+            ) {
+              throw new Error("Invalid data");
+            }
+
+            state = {
+              version: 3,
+              language: imported.language === "en"
+                ? "en"
+                : "es",
+              theme: imported.theme === "dark"
+                ? "dark"
+                : "light",
+              habits: imported.habits
+                .map(normalizeHabit)
+                .filter(Boolean)
+            };
+
+            $("#langSelect").value = state.language;
+
+            setLanguage(state.language);
+            persist();
+            render();
+
+            $("#notice").textContent = t().imported;
+          } catch {
+            alert(t().invalidFile);
+          }
+        }
+      );
+
+      $("#resetBtn").addEventListener("click", () => {
+        if (!confirm(t().confirmReset)) {
+          return;
+        }
+
+        state = defaultState();
+        chartFilters.habit = "all";
+        chartFilters.frequency = "all";
+        chartFilters.period = "7";
+
+        $("#langSelect").value = state.language;
+        $("#chartPeriodFilter").value = chartFilters.period;
+        $("#chartFrequencyFilter").value =
+          chartFilters.frequency;
+
+        persist();
+        setLanguage(state.language);
+        render();
+
+        $("#notice").textContent = t().resetDone;
+      });
+
+      $("#prevMonth").addEventListener("click", () => {
+        monthCursor = new Date(
+          monthCursor.getFullYear(),
+          monthCursor.getMonth() - 1,
+          1
+        );
+
+        renderMonth();
+      });
+
+      $("#nextMonth").addEventListener("click", () => {
+        monthCursor = new Date(
+          monthCursor.getFullYear(),
+          monthCursor.getMonth() + 1,
+          1
+        );
+
+        renderMonth();
+      });
+
+      $("#langSelect").value = state.language;
+      $("#chartPeriodFilter").value = chartFilters.period;
+      $("#chartFrequencyFilter").value =
+        chartFilters.frequency;
+
+      setLanguage(state.language);
+    })();
+  </script>
+</body>
+</html>
